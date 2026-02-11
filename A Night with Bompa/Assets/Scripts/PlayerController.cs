@@ -31,9 +31,8 @@ public class PlayerController : MonoBehaviour
     {
         currentPower = maxPower;
 
-        // Ensure cursor is locked
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
 
         // Find components if not assigned
         if (lookController == null)
@@ -54,17 +53,6 @@ public class PlayerController : MonoBehaviour
 
     void HandleInput()
     {
-        // Door controls
-        if (Input.GetKeyDown(KeyCode.A))
-        {
-            ToggleDoor(leftDoor);
-        }
-
-        if (Input.GetKeyDown(KeyCode.D))
-        {
-            ToggleDoor(rightDoor);
-        }
-
         // Camera toggle
         if (Input.GetKeyDown(KeyCode.C))
         {
@@ -91,7 +79,7 @@ public class PlayerController : MonoBehaviour
         }
 
         // Interact with objects (E key)
-        if (Input.GetKeyDown(KeyCode.F))
+        if (Input.GetMouseButtonDown(0))
         {
             TryInteract();
         }
@@ -116,13 +104,6 @@ public class PlayerController : MonoBehaviour
             cameraMonitor.ToggleMonitor(isViewingCameras);
         }
 
-        // Enable/disable mouse look when using cameras
-        if (lookController != null)
-        {
-            lookController.SetMouseControl(!isViewingCameras);
-        }
-
-        // Play static sound
         if (staticSound != null)
         {
             if (isViewingCameras)

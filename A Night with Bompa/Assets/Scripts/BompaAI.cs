@@ -13,9 +13,9 @@ public class BompaAI : MonoBehaviour
     [Header("Attack Settings")]
     public float doorCheckInterval = 1f;
     public float jumpscareDistance = 2f;
-    public AudioClip movementSound;
-    public AudioClip doorSound;
-    public AudioClip jumpscareSound;
+    //public AudioClip movementSound;
+    //public AudioClip doorSound;
+    //public AudioClip jumpscareSound;
 
     private BompaState currentState;
     private int currentWaypoint = 0;
@@ -91,7 +91,7 @@ public class BompaAI : MonoBehaviour
                 // Play arrival sound if at door
                 if (currentWaypoint >= waypoints.Count - 2) // Last two waypoints are near doors
                 {
-                    PlayDoorSound();
+                    //PlayDoorSound();
                     currentState = BompaState.AtDoor;
                 }
             }
@@ -139,10 +139,10 @@ public class BompaAI : MonoBehaviour
         currentState = BompaState.Jumpscare;
 
         // Play jumpscare sound
-        if (audioSource != null && jumpscareSound != null)
-        {
-            audioSource.PlayOneShot(jumpscareSound);
-        }
+        //if (audioSource != null && jumpscareSound != null)
+        //{
+        //    audioSource.PlayOneShot(jumpscareSound);
+        //}
 
         // Trigger jumpscare animation/UI
         Debug.Log("JUMPSCARE! Game Over!");
@@ -150,13 +150,13 @@ public class BompaAI : MonoBehaviour
         // Here you would trigger game over screen
     }
 
-    void PlayDoorSound()
-    {
-        if (audioSource != null && doorSound != null)
-        {
-            audioSource.PlayOneShot(doorSound);
-        }
-    }
+    //void PlayDoorSound()
+    //{
+    //    if (audioSource != null && doorSound != null)
+    //    {
+    //        audioSource.PlayOneShot(doorSound);
+    //    }
+    //}
 
     // Call this from camera system when Bompa is visible
     public Vector3 GetCurrentLocation()

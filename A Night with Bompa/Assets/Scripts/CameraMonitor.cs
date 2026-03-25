@@ -1,101 +1,64 @@
 using UnityEngine;
-using UnityEngine.UI;
+using TMPro;
 
 public class CameraMonitor : MonoBehaviour
 {
-    [System.Serializable]
-    public struct CameraFeed
-    {
-        public string locationName;
-        public RenderTexture renderTexture;
-        public RawImage displayImage;
-        public BompaAI bompa; // Reference to check if Bompa is here
-    }
-
-    public CameraFeed[] cameraFeeds;
+    public Camera playerCamera;
+    public Camera[] cameras;
+    public TextMeshProUGUI roomText;
     public GameObject monitorUI;
-    public Text locationText;
 
     private int currentCamera = 0;
-    private bool isActive = false;
+    private bool isViewingCameras = false;
 
     void Start()
     {
-        if (monitorUI != null)
-            monitorUI.SetActive(false);
-
-        UpdateCameraDisplay();
-    }
-
-    public void ToggleMonitor(bool state)
-    {
-        isActive = state;
-
-        if (monitorUI != null)
-            monitorUI.SetActive(state);
-
-        if (state)
-        {
-            Cursor.lockState = CursorLockMode.None;
-            Cursor.visible = true;
-        }
-        else
-        {
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
-        }
+        ActivateCamera(0);
+        monitorUI.SetActive(false);
     }
 
     void Update()
     {
-        if (!isActive) return;
+        if (!isViewingCameras) return;
 
-        // Switch cameras with arrow keys or numbers
-        if (Input.GetKeyDown(KeyCode.RightArrow))
+        // Keys 1–9 to switch cameras
+        for (int i = 0; i < cameras.Length; i++)
         {
-            currentCamera = (currentCamera + 1) % cameraFeeds.Length;
-            UpdateCameraDisplay();
-        }
-        else if (Input.GetKeyDown(KeyCode.LeftArrow))
-        {
-            currentCamera = (currentCamera - 1 + cameraFeeds.Length) % cameraFeeds.Length;
-            UpdateCameraDisplay();
-        }
-
-        // Check for Bompa on current camera
-        CheckForBompa();
-    }
-
-    void UpdateCameraDisplay()
-    {
-        if (cameraFeeds.Length == 0) return;
-
-        // Update all displays
-        for (int i = 0; i < cameraFeeds.Length; i++)
-        {
-            if (cameraFeeds[i].displayImage != null)
+            if (Input.GetKeyDown(KeyCode.Alpha1 + i))
             {
-                cameraFeeds[i].displayImage.gameObject.SetActive(i == currentCamera);
-
-                if (i == currentCamera && locationText != null)
-                {
-                    locationText.text = cameraFeeds[i].locationName;
-                }
+                ActivateCamera(i);
             }
         }
     }
 
-    void CheckForBompa()
+    public void ToggleMonitor(bool state)
     {
-        if (cameraFeeds[currentCamera].bompa != null)
-        {
-            // Check if Bompa is visible at this location
-            // You'll need to implement this based on your Bompa waypoints
-        }
+        isViewingCameras = state;
+
+        // Turn the player camera OFF when cameras are open
+        if (playerCamera != null)
+            playerCamera.enabled = !state;
+
+        // Turn monitor UI on/off
+        monitorUI.SetActive(state);
+
+        if (state)
+            ActivateCamera(currentCamera);
+        else
+            DisableAllCameras();
     }
 
-    public int GetCurrentCamera()
+    void ActivateCamera(int index)
     {
-        return currentCamera;
+        currentCamera = index;
+
+        for (int i = 0; i < cameras.Length; i++)
+            cameras[i].enabled = (i == index);
+    }
+
+    void DisableAllCameras()
+    {
+        foreach (Camera cam in cameras)
+            cam.enabled = false;
     }
 }

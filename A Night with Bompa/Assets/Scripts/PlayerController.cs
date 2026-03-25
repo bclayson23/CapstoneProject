@@ -9,11 +9,11 @@ public class PlayerController : MonoBehaviour
     [Header("Door Controls")]
     public DoorController leftDoor;
     public DoorController rightDoor;
-    public AudioSource doorSound;
+    //public AudioSource doorSound;
 
     [Header("Camera System")]
     public CameraMonitor cameraMonitor;
-    public AudioSource staticSound;
+    //public AudioSource staticSound;
 
     [Header("Power System")]
     public float maxPower = 100f;
@@ -53,47 +53,30 @@ public class PlayerController : MonoBehaviour
 
     void HandleInput()
     {
-        // Camera toggle
-        if (Input.GetKeyDown(KeyCode.C))
-        {
-            ToggleCameras();
-        }
-
-        // Door lights (when camera is down)
-        if (Input.GetKey(KeyCode.Q) && !isViewingCameras)
-        {
-            leftDoor.ToggleLight(true);
-        }
-        else
-        {
-            leftDoor.ToggleLight(false);
-        }
-
-        if (Input.GetKey(KeyCode.E) && !isViewingCameras)
-        {
-            rightDoor.ToggleLight(true);
-        }
-        else
-        {
-            rightDoor.ToggleLight(false);
-        }
-
-        // Interact with objects (E key)
         if (Input.GetMouseButtonDown(0))
         {
             TryInteract();
         }
+
+        if (Input.GetKeyDown(KeyCode.S))
+        {
+            if (lookController.isCenterView())
+            {
+                Debug.Log("Opening cameras");
+                ToggleCameras();
+            }
+        }
     }
 
-    void ToggleDoor(DoorController door)
-    {
-        if (door == null) return;
+    //void ToggleDoor(DoorController door)
+    //{
+    //    if (door == null) return;
 
-        door.ToggleDoor();
+    //    door.ToggleDoor();
 
-        if (doorSound != null)
-            doorSound.Play();
-    }
+    //    if (doorSound != null)
+    //        doorSound.Play();
+    //}
 
     void ToggleCameras()
     {
@@ -104,13 +87,13 @@ public class PlayerController : MonoBehaviour
             cameraMonitor.ToggleMonitor(isViewingCameras);
         }
 
-        if (staticSound != null)
-        {
-            if (isViewingCameras)
-                staticSound.Play();
-            else
-                staticSound.Stop();
-        }
+        //if (staticSound != null)
+        //{
+        //    if (isViewingCameras)
+        //        staticSound.Play();
+        //    else
+        //        staticSound.Stop();
+        //}
     }
 
     void DrainPower()
@@ -211,6 +194,20 @@ public class PlayerController : MonoBehaviour
         // 1. Play jumpscare animation
         // 2. Show game over screen
         // 3. Play scream sound
+    }
+
+    void TryOpenCameras()
+    {
+        Ray ray = playerCamera.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0));
+        RaycastHit hit;
+
+        if (Physics.Raycast(ray, out hit, interactionRange, interactionLayer))
+        {
+            if (hit.collider.CompareTag("Computer"))
+            {
+                ToggleCameras();
+            }
+        }
     }
 }
 

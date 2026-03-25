@@ -10,6 +10,11 @@ public class FixedViewController : MonoBehaviour
 
     private Transform targetView;
 
+    public bool isCenterView()
+    {
+        return targetView == centerView;
+    }
+
     void Start()
     {
         targetView = centerView;

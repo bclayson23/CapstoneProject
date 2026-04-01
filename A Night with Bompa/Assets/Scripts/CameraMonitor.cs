@@ -1,5 +1,6 @@
 using UnityEngine;
 using TMPro;
+using System.Collections;
 
 public class CameraMonitor : MonoBehaviour
 {
@@ -17,6 +18,8 @@ public class CameraMonitor : MonoBehaviour
     private bool bompaEscaped = false;
 
     public TextMeshProUGUI cameraNameText;
+
+    public GameObject blackoutScreen;
 
     public void SetBompaEscaped(bool state)
     {
@@ -108,5 +111,14 @@ public class CameraMonitor : MonoBehaviour
     {
         foreach (Camera cam in cameras)
             cam.enabled = false;
+    }
+
+    public IEnumerator CameraBlackout()
+    {
+        blackoutScreen.SetActive(true);
+
+        yield return new WaitForSeconds(0.15f);
+
+        blackoutScreen.SetActive(false);
     }
 }

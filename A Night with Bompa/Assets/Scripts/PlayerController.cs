@@ -85,6 +85,16 @@ public class PlayerController : MonoBehaviour
         if (cameraMonitor != null)
         {
             cameraMonitor.ToggleMonitor(isViewingCameras);
+
+            BompaManager bompa = FindObjectOfType<BompaManager>();
+
+            if (bompa != null)
+            {
+                if (!isViewingCameras)
+                    bompa.OnCameraDown();
+                else
+                    bompa.OnCameraUp();
+            }
         }
 
         //if (staticSound != null)

@@ -1,11 +1,18 @@
+using System.Collections;
 using UnityEngine;
-using static System.Runtime.CompilerServices.RuntimeHelpers;
 
 public class BompaManager : MonoBehaviour
 {
     [Header("All Bompa Positions")]
     public GameObject bompaInCell;
     public GameObject hallBompa;
+
+    [Header("Door References")]
+    public DoorController leftDoorScript;
+    public DoorController rightDoorScript;
+
+    [Header("Attack")]
+    public GameObject officeBompa;
 
     public GameObject[] roamingBompas; // kitchen, dining, etc
 
@@ -22,6 +29,13 @@ public class BompaManager : MonoBehaviour
     public GameObject rightDoor;
     public GameObject cellHall;
 
+    private bool isAtDoor = false;
+    private bool readyToAttack = false;
+    private bool isLeftDoor = false;
+
+    public float minDoorWait = 10f;
+    public float maxDoorWait = 40f;
+
     public enum BompaState
     {
         Cell,
@@ -34,6 +48,35 @@ public class BompaManager : MonoBehaviour
     }
 
     private BompaState currentState;
+
+    public void OnCameraUp()
+    {
+        // Player raised camera
+        if (isAtDoor && !readyToAttack)
+        {
+            readyToAttack = true;
+            Debug.Log("Bompa is ready to attack next time...");
+        }
+    }
+
+    public void OnCameraDown()
+    {
+        // Player lowered camera
+        if (isAtDoor && readyToAttack)
+        {
+            DoorController door = isLeftDoor ? leftDoorScript : rightDoorScript;
+
+            if (!door.isClosed)
+            {
+                TriggerAttack();
+            }
+            else
+            {
+                // Player successfully blocked
+                Debug.Log("Player blocked Bompa!");
+            }
+        }
+    }
 
     void Start()
     {
@@ -72,6 +115,11 @@ public class BompaManager : MonoBehaviour
 
         currentBompa = newBompa;
         currentBompa.SetActive(true);
+
+        // Trigger blackout
+        CameraMonitor camMonitor = FindObjectOfType<CameraMonitor>();
+        if (camMonitor != null)
+            StartCoroutine(camMonitor.CameraBlackout());
     }
 
     void TryMove()
@@ -97,13 +145,15 @@ public class BompaManager : MonoBehaviour
                 break;
 
             case BompaState.LeftHall:
-                SetActiveBompa(leftDoor);
+                SetActiveBompa(leftDoor.gameObject);
                 currentState = BompaState.LeftDoor;
+                EnterDoorState(true);
                 break;
 
             case BompaState.RightHall:
-                SetActiveBompa(rightDoor);
+                SetActiveBompa(rightDoor.gameObject);
                 currentState = BompaState.RightDoor;
+                EnterDoorState(false);
                 break;
 
             case BompaState.LeftDoor:
@@ -143,5 +193,57 @@ public class BompaManager : MonoBehaviour
         int index = Random.Range(0, roamingBompas.Length);
         SetActiveBompa(roamingBompas[index]);
         currentState = BompaState.Roaming;
+    }
+
+    void ReturnToHall()
+    {
+        isAtDoor = false;
+        readyToAttack = false;
+
+        SetActiveBompa(cellHall);
+        currentState = BompaState.CellHall;
+
+        Debug.Log("Bompa returned to Cell Hall");
+    }
+
+    void TriggerAttack()
+    {
+        Debug.Log("Bompa attack!");
+
+        if (currentBompa != null)
+            currentBompa.SetActive(false);
+
+        if (officeBompa != null)
+            officeBompa.SetActive(true);
+
+        // Stop movement
+        CancelInvoke(nameof(TryMove));
+    }
+
+    IEnumerator DoorWaitTimer()
+    {
+        float waitTime = Random.Range(minDoorWait, maxDoorWait);
+
+        Debug.Log("Bompa will wait: " + waitTime + " seconds");
+
+        yield return new WaitForSeconds(waitTime);
+
+        if (isAtDoor)
+        {
+            Debug.Log("Bompa leaves after waiting");
+
+            ReturnToHall();
+        }
+    }
+
+    void EnterDoorState(bool left)
+    {
+        isAtDoor = true;
+        readyToAttack = false;
+        isLeftDoor = left;
+
+        Debug.Log("Bompa is at the door...");
+
+        StartCoroutine(DoorWaitTimer());
     }
 }

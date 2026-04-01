@@ -18,6 +18,17 @@ public class CameraMonitor : MonoBehaviour
 
     public TextMeshProUGUI cameraNameText;
 
+    public void SetBompaEscaped(bool state)
+    {
+        bompaEscaped = state;
+
+        // If currently viewing camera 1, refresh it immediately
+        if (currentCamera == 0 && isViewingCameras)
+        {
+            ActivateCamera(0);
+        }
+    }
+
     void Start()
     {
         ActivateCamera(0);

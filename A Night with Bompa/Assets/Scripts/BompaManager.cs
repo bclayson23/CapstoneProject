@@ -98,7 +98,7 @@ public class BompaManager : MonoBehaviour
     void EscapeCell()
     {
         hasEscaped = true;
-        currentState = BompaState.Roaming;
+        currentState = BompaState.CellHall;
 
         // Tell camera system Bompa escaped
         CameraMonitor camMonitor = FindObjectOfType<CameraMonitor>();
@@ -137,8 +137,8 @@ public class BompaManager : MonoBehaviour
         switch (currentState)
         {
             case BompaState.CellHall:
-                MoveToRoaming(); // FORCE this
-                break;
+                MoveToRoaming();
+                return;
 
             case BompaState.Roaming:
                 MoveFromRoaming();

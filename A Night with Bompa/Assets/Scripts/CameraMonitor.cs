@@ -34,9 +34,16 @@ public class CameraMonitor : MonoBehaviour
 
     void Start()
     {
-        ActivateCamera(0);
-        monitorUI.SetActive(false);
-        cameraNameText.gameObject.SetActive(false);
+        DisableAllCameras();
+
+        if (monitorUI != null)
+            monitorUI.SetActive(false);
+
+        if (cameraNameText != null)
+            cameraNameText.gameObject.SetActive(false);
+
+        if (playerCamera != null)
+            playerCamera.enabled = true; // make sure office camera is active
     }
 
     void Update()
@@ -76,10 +83,27 @@ public class CameraMonitor : MonoBehaviour
     {
         currentCamera = index;
 
-        for (int i = 0; i < cameras.Length; i++)
-            cameras[i].enabled = (i == index);
+        // Turn off all cameras
+        foreach (Camera cam in cameras)
+            cam.enabled = false;
 
-        // Special case for key 1
+        // Update text FIRST
+        string[] cameraNames =
+        {
+        "CAM 01 - Cell",
+        "CAM 02 - Cell Hall",
+        "CAM 03 - Kitchen",
+        "CAM 04 - Dining",
+        "CAM 05 - Bathroom",
+        "CAM 06 - Printer",
+        "CAM 07 - Breakroom",
+        "CAM 08 - Left Hall",
+        "CAM 09 - Right Hall"
+    };
+
+        cameraNameText.text = cameraNames[index];
+
+        // Special case for Cam 1
         if (index == 0)
         {
             if (!bompaEscaped)
@@ -90,21 +114,7 @@ public class CameraMonitor : MonoBehaviour
             return;
         }
 
-        string[] cameraNames =
-        {
-            "CAM 01 - Cell",
-            "CAM 02 - Cell Hall",
-            "CAM 03 - Kitchen",
-            "CAM 04 - Dining",
-            "CAM 05 - Bathroom",
-            "CAM 06 - Printer",
-            "CAM 07 - Breakroom",
-            "CAM 08 - Left Hall",
-            "CAM 09 - Right Hall"
-        };
-
         cameras[index].enabled = true;
-        cameraNameText.text = cameraNames[index];
     }
 
     void DisableAllCameras()

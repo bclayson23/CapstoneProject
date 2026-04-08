@@ -15,6 +15,14 @@ public class FixedViewController : MonoBehaviour
         return targetView == centerView;
     }
 
+    public void ForceCenterView()
+    {
+        targetView = centerView;
+
+        transform.position = centerView.position;
+        transform.rotation = centerView.rotation;
+    }
+
     void Start()
     {
         targetView = centerView;

@@ -131,4 +131,9 @@ public class CameraMonitor : MonoBehaviour
 
         blackoutScreen.SetActive(false);
     }
+
+    public bool IsViewingCameras()
+    {
+        return isViewingCameras;
+    }
 }

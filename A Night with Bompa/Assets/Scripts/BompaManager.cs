@@ -36,6 +36,55 @@ public class BompaManager : MonoBehaviour
     public float minDoorWait = 10f;
     public float maxDoorWait = 40f;
 
+    float cameraUpTimer = 0f;
+    public float maxCameraUpTimeAtDoor = 15f;
+
+    [Header("Audio")]
+    public AudioSource echoSource;
+    public AudioSource cleanSource;
+
+    public AudioClip[] doorArrivalSounds;
+    public AudioClip[] doorLeaveSounds;
+    public AudioClip jumpscareSound;
+
+    public void ForceToLeftDoor()
+    {
+        SetActiveBompa(leftDoor.gameObject);
+        currentState = BompaState.LeftDoor;
+
+        EnterDoorState(true);
+    }
+
+    public void ResetBompa()
+    {
+        hasEscaped = false;
+        isAtDoor = false;
+        readyToAttack = false;
+
+        if (currentBompa != null)
+            currentBompa.SetActive(false);
+
+        if (officeBompa != null)
+            officeBompa.SetActive(false);
+
+        foreach (GameObject b in roamingBompas)
+            if (b != null) b.SetActive(false);
+
+        if (leftHall != null) leftHall.SetActive(false);
+        if (rightHall != null) rightHall.SetActive(false);
+        if (cellHall != null) cellHall.SetActive(false);
+        if (leftDoor != null) leftDoor.SetActive(false);
+        if (rightDoor != null) rightDoor.SetActive(false);
+
+        SetActiveBompa(bompaInCell);
+        currentState = BompaState.Cell;
+
+        CancelInvoke(nameof(TryMove));
+        InvokeRepeating(nameof(TryMove), moveInterval, moveInterval);
+
+        Debug.Log("Bompa fully reset");
+    }
+
     public enum BompaState
     {
         Cell,
@@ -51,30 +100,36 @@ public class BompaManager : MonoBehaviour
 
     public void OnCameraUp()
     {
-        // Player raised camera
-        if (isAtDoor && !readyToAttack)
+        if (!isAtDoor) return;
+
+        DoorController door = isLeftDoor ? leftDoorScript : rightDoorScript;
+
+        if (!door.isClosed)
         {
             readyToAttack = true;
-            Debug.Log("Bompa is ready to attack next time...");
+            Debug.Log("Bompa is now ready to attack");
         }
     }
 
     public void OnCameraDown()
     {
-        // Player lowered camera
-        if (isAtDoor && readyToAttack)
-        {
-            DoorController door = isLeftDoor ? leftDoorScript : rightDoorScript;
+        if (!isAtDoor) return;
 
-            if (!door.isClosed)
-            {
-                TriggerAttack();
-            }
-            else
-            {
-                // Player successfully blocked
-                Debug.Log("Player blocked Bompa!");
-            }
+        DoorController door = isLeftDoor ? leftDoorScript : rightDoorScript;
+
+        if (door.isClosed)
+        {
+            Debug.Log("Player blocked Bompa — leaving");
+
+            ReturnToHall();
+            return;
+        }
+
+        if (readyToAttack)
+        {
+            Debug.Log("Player failed — ATTACK");
+
+            TriggerAttack();
         }
     }
 
@@ -82,16 +137,28 @@ public class BompaManager : MonoBehaviour
     {
         SetActiveBompa(bompaInCell);
         InvokeRepeating(nameof(TryMove), moveInterval, moveInterval);
-
-        InvokeRepeating(nameof(TryMove), moveInterval, moveInterval);
     }
 
     void Update()
     {
-        // TEMP TEST: press M to simulate midnight
-        if (Input.GetKeyDown(KeyCode.M) && !hasEscaped)
+        if (isAtDoor)
         {
-            EscapeCell();
+            PlayerController player = FindObjectOfType<PlayerController>();
+
+            if (player != null && player.IsViewingCameras())
+            {
+                cameraUpTimer += Time.deltaTime;
+
+                if (cameraUpTimer >= maxCameraUpTimeAtDoor)
+                {
+                    readyToAttack = true;
+                    Debug.Log("Camera camping detected — Bompa ready to attack");
+                }
+            }
+            else
+            {
+                cameraUpTimer = 0f;
+            }
         }
     }
 
@@ -100,12 +167,11 @@ public class BompaManager : MonoBehaviour
         hasEscaped = true;
         currentState = BompaState.CellHall;
 
-        // Tell camera system Bompa escaped
         CameraMonitor camMonitor = FindObjectOfType<CameraMonitor>();
         if (camMonitor != null)
             camMonitor.SetBompaEscaped(true);
 
-        SetActiveBompa(hallBompa);
+        SetActiveBompa(cellHall);
     }
 
     void SetActiveBompa(GameObject newBompa)
@@ -125,6 +191,14 @@ public class BompaManager : MonoBehaviour
     void TryMove()
     {
         if (!hasEscaped) return;
+
+        if (currentState == BompaState.CellHall)
+        {
+            MoveToRoaming();
+            return;
+        }
+
+        if (isAtDoor) return;
 
         float roll = Random.value;
         if (roll > moveChance) return;
@@ -203,10 +277,16 @@ public class BompaManager : MonoBehaviour
         SetActiveBompa(cellHall);
         currentState = BompaState.CellHall;
 
+        PlayRandomSound(echoSource, doorLeaveSounds);
+
+        // Restart movement loop cleanly
+        CancelInvoke(nameof(TryMove));
+        InvokeRepeating(nameof(TryMove), moveInterval, moveInterval);
+
         Debug.Log("Bompa returned to Cell Hall");
     }
 
-    void TriggerAttack()
+    public void TriggerAttack()
     {
         Debug.Log("Bompa attack!");
 
@@ -216,24 +296,12 @@ public class BompaManager : MonoBehaviour
         if (officeBompa != null)
             officeBompa.SetActive(true);
 
-        // Stop movement
+        if (jumpscareSound != null)
+            cleanSource.PlayOneShot(jumpscareSound);
+
         CancelInvoke(nameof(TryMove));
-    }
 
-    IEnumerator DoorWaitTimer()
-    {
-        float waitTime = Random.Range(minDoorWait, maxDoorWait);
-
-        Debug.Log("Bompa will wait: " + waitTime + " seconds");
-
-        yield return new WaitForSeconds(waitTime);
-
-        if (isAtDoor)
-        {
-            Debug.Log("Bompa leaves after waiting");
-
-            ReturnToHall();
-        }
+        StartCoroutine(HandleGameOver());
     }
 
     void EnterDoorState(bool left)
@@ -242,8 +310,44 @@ public class BompaManager : MonoBehaviour
         readyToAttack = false;
         isLeftDoor = left;
 
-        Debug.Log("Bompa is at the door...");
+        PlayRandomSound(echoSource, doorArrivalSounds);
 
-        StartCoroutine(DoorWaitTimer());
+        cameraUpTimer = 0f;
+
+        CancelInvoke(nameof(TryMove));
+
+        Debug.Log("Bompa is waiting at the door...");
+    }
+
+    void PlayRandomSound(AudioSource source, AudioClip[] clips)
+    {
+        if (clips.Length == 0 || source == null) return;
+
+        int index = Random.Range(0, clips.Length);
+        source.PlayOneShot(clips[index]);
+    }
+
+    IEnumerator HandleGameOver()
+    {
+        PlayerController player = FindObjectOfType<PlayerController>();
+
+        if (player != null)
+            player.DisablePlayer();
+
+        yield return new WaitForSeconds(1f);
+
+        MenuManager menu = FindObjectOfType<MenuManager>();
+        if (menu != null)
+            menu.ShowGameOver();
+    }
+
+    public void OnMidnight()
+    {
+        if (!hasEscaped)
+        {
+            Debug.Log("Midnight reached — Bompa escaping");
+
+            EscapeCell();
+        }
     }
 }

@@ -27,6 +27,14 @@ public class PlayerController : MonoBehaviour
     private bool isViewingCameras = false;
     private bool isGameActive = true;
 
+    public void DisablePlayer()
+    {
+        enabled = false;
+
+        if (lookController != null)
+            lookController.enabled = false;
+    }
+
     void Start()
     {
         currentPower = maxPower;
@@ -40,6 +48,11 @@ public class PlayerController : MonoBehaviour
 
         if (playerCamera == null)
             playerCamera = Camera.main;
+
+        if (Time.timeScale == 0f)
+        {
+            enabled = false;
+        }
     }
 
     void Update()
@@ -68,16 +81,6 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    //void ToggleDoor(DoorController door)
-    //{
-    //    if (door == null) return;
-
-    //    door.ToggleDoor();
-
-    //    if (doorSound != null)
-    //        doorSound.Play();
-    //}
-
     void ToggleCameras()
     {
         isViewingCameras = !isViewingCameras;
@@ -97,13 +100,8 @@ public class PlayerController : MonoBehaviour
             }
         }
 
-        //if (staticSound != null)
-        //{
-        //    if (isViewingCameras)
-        //        staticSound.Play();
-        //    else
-        //        staticSound.Stop();
-        //}
+        if (lookController != null)
+            lookController.enabled = !isViewingCameras;
     }
 
     void DrainPower()

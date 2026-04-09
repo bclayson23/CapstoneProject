@@ -49,10 +49,17 @@ public class BompaManager : MonoBehaviour
 
     public void ForceToLeftDoor()
     {
-        SetActiveBompa(leftDoor.gameObject);
+        Debug.Log("ForceToLeftDoor called");
+
+        CancelInvoke(nameof(TryMove));
+
+        SetActiveBompa(leftDoor);
+
         currentState = BompaState.LeftDoor;
 
         EnterDoorState(true);
+
+        Debug.Log("Bompa forced to door (normal state)");
     }
 
     public void ResetBompa()

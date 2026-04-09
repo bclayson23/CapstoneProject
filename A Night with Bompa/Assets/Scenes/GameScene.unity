@@ -14920,7 +14920,7 @@ MonoBehaviour:
   maxPower: 100
   currentPower: 0
   powerText: {fileID: 2052685407}
-  baseDrain: 0.01
+  baseDrain: 0.05
   doorDrain: 0.3
   cameraDrain: 0.3
   lightDrain: 0.1
@@ -17348,6 +17348,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   controlledLight: {fileID: 138316654}
+  door: {fileID: 1557458267}
 --- !u!1001 &1551270027
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -20343,6 +20344,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   controlledLight: {fileID: 1813074991}
+  door: {fileID: 856536606}
 --- !u!136 &1861829843
 CapsuleCollider:
   m_ObjectHideFlags: 0

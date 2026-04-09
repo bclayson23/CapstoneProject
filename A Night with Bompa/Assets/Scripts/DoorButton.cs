@@ -6,6 +6,10 @@ public class DoorButton : MonoBehaviour
 
     void OnMouseDown()
     {
+        GameManager gm = FindObjectOfType<GameManager>();
+        if (gm != null && gm.IsPowerOut())
+            return;
+
         door.ToggleDoor();
     }
 }

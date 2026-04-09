@@ -29,6 +29,11 @@ public class GameManager : MonoBehaviour
 
     private bool powerOut = false;
 
+    public bool IsPowerOut()
+    {
+        return powerOut;
+    }
+
     [Header("Power Out")]
     public Light officeLight;
 
@@ -57,6 +62,9 @@ public class GameManager : MonoBehaviour
         currentPower = maxPower;
         powerOut = false;
         gameActive = false;
+
+        if (officeLight != null)
+            officeLight.enabled = true;
 
         UpdateTimeUI();
         UpdatePowerUI();
@@ -134,50 +142,60 @@ public class GameManager : MonoBehaviour
     }
 
     IEnumerator PowerOutSequence()
-{
-    powerOut = true;
-
-    Debug.Log("POWER OUT");
-
-    if (officeLight != null)
-        officeLight.enabled = false;
-
-    if (cameraMonitor != null)
-        cameraMonitor.ToggleMonitor(false);
-
-    if (leftDoor != null)
     {
-        if (leftDoor.isClosed)
-            leftDoor.ToggleDoor();
+        powerOut = true;
 
-        leftDoor.enabled = false; // disables interaction
+        Debug.Log("POWER OUT");
+
+        if (officeLight != null)
+            officeLight.enabled = false;
+
+        if (cameraMonitor != null)
+            cameraMonitor.ToggleMonitor(false);
+
+        if (leftDoor != null)
+        {
+            if (leftDoor.isClosed)
+                leftDoor.ToggleDoor();
+
+            leftDoor.enabled = false; // disables interaction
+        }
+
+        if (rightDoor != null)
+        {
+            if (rightDoor.isClosed)
+                rightDoor.ToggleDoor();
+
+            rightDoor.enabled = false;
+        }
+
+        leftDoor.ToggleLight(false);
+        rightDoor.ToggleLight(false);
+
+        if (player != null)
+            player.enabled = false;
+
+        BompaManager bompa = FindObjectOfType<BompaManager>();
+        bompa.ForceToLeftDoor();
+
+        float wait = Random.Range(5f, 25f);
+
+        Debug.Log("PowerOut: waiting " + wait + " seconds");
+
+        yield return new WaitForSecondsRealtime(wait);
+
+        Debug.Log("PowerOut: trying to attack");
+
+        if (bompa == null)
+        {
+            Debug.Log("ERROR: Bompa is NULL");
+        }
+        else
+        {
+            Debug.Log("Calling TriggerAttack()");
+            bompa.TriggerAttack();
+        }
     }
-
-    if (rightDoor != null)
-    {
-        if (rightDoor.isClosed)
-            rightDoor.ToggleDoor();
-
-        rightDoor.enabled = false;
-    }
-
-    leftDoor.ToggleLight(false);
-    rightDoor.ToggleLight(false);
-
-    if (player != null)
-        player.enabled = false;
-
-    BompaManager bompa = FindObjectOfType<BompaManager>();
-    bompa.ForceToLeftDoor();
-
-    float wait = Random.Range(5f, 15f);
-    yield return new WaitForSeconds(wait);
-
-    if (currentHour < 6)
-    {
-        bompa.TriggerAttack();
-    }
-}
 
     void WinGame()
     {

@@ -47,6 +47,9 @@ public class BompaManager : MonoBehaviour
     public AudioClip[] doorLeaveSounds;
     public AudioClip jumpscareSound;
 
+    private bool justEnteredCellHall = false;
+    private bool waitingForMidnightCall = false;
+
     public void ForceToLeftDoor()
     {
         Debug.Log("ForceToLeftDoor called");
@@ -174,6 +177,8 @@ public class BompaManager : MonoBehaviour
         hasEscaped = true;
         currentState = BompaState.CellHall;
 
+        waitingForMidnightCall = true;
+
         CameraMonitor camMonitor = FindObjectOfType<CameraMonitor>();
         if (camMonitor != null)
             camMonitor.SetBompaEscaped(true);
@@ -197,13 +202,19 @@ public class BompaManager : MonoBehaviour
 
     void TryMove()
     {
-        if (!hasEscaped) return;
+        GameManager gm = FindObjectOfType<GameManager>();
 
-        if (currentState == BompaState.CellHall)
+        if (waitingForMidnightCall && gm != null && !gm.midnightCallFinished)
         {
-            MoveToRoaming();
             return;
         }
+
+        if (waitingForMidnightCall && gm != null && gm.midnightCallFinished)
+        {
+            waitingForMidnightCall = false;
+        }
+
+        if (!hasEscaped) return;
 
         if (isAtDoor) return;
 
@@ -286,9 +297,10 @@ public class BompaManager : MonoBehaviour
 
         PlayRandomSound(echoSource, doorLeaveSounds);
 
-        // Restart movement loop cleanly
         CancelInvoke(nameof(TryMove));
         InvokeRepeating(nameof(TryMove), moveInterval, moveInterval);
+
+        StopCoroutine(nameof(DoorWaitRoutine));
 
         Debug.Log("Bompa returned to Cell Hall");
     }
@@ -323,6 +335,8 @@ public class BompaManager : MonoBehaviour
 
         CancelInvoke(nameof(TryMove));
 
+        StartCoroutine(DoorWaitRoutine());
+
         Debug.Log("Bompa is waiting at the door...");
     }
 
@@ -343,9 +357,9 @@ public class BompaManager : MonoBehaviour
 
         yield return new WaitForSeconds(1f);
 
-        MenuManager menu = FindObjectOfType<MenuManager>();
-        if (menu != null)
-            menu.ShowGameOver();
+        GameManager gm = FindObjectOfType<GameManager>();
+        if (gm != null)
+            gm.TriggerGameOver();
     }
 
     public void OnMidnight()
@@ -355,6 +369,19 @@ public class BompaManager : MonoBehaviour
             Debug.Log("Midnight reached — Bompa escaping");
 
             EscapeCell();
+        }
+    }
+
+    IEnumerator DoorWaitRoutine()
+    {
+        float wait = Random.Range(minDoorWait, maxDoorWait);
+
+        yield return new WaitForSeconds(wait);
+
+        if (isAtDoor && !readyToAttack)
+        {
+            Debug.Log("Door timer expired — leaving");
+            ReturnToHall();
         }
     }
 }

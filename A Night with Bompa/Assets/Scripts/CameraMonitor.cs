@@ -136,4 +136,10 @@ public class CameraMonitor : MonoBehaviour
     {
         return isViewingCameras;
     }
+
+    public void ForceClearBlackout()
+    {
+        StopAllCoroutines();
+        blackoutScreen.SetActive(false);
+    }
 }

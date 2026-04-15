@@ -29,6 +29,21 @@ public class GameManager : MonoBehaviour
 
     private bool powerOut = false;
 
+    public bool midnightCallFinished = false;
+
+    public AudioSource winSource;
+
+    [Header("Phone Calls")]
+    public AudioSource phoneSource;
+
+    public AudioClip startCall;
+    public AudioClip midnightCall;
+
+    private bool midnightCallPlayed = false;
+
+    [Header("Ambient")]
+    public AudioSource ambientSource;
+
     public bool IsPowerOut()
     {
         return powerOut;
@@ -53,6 +68,12 @@ public class GameManager : MonoBehaviour
     public void StartGame()
     {
         gameActive = true;
+
+        if (phoneSource != null && startCall != null)
+            phoneSource.PlayOneShot(startCall);
+
+        if (ambientSource != null)
+            ambientSource.Play();
     }
 
     public void ResetGame()
@@ -68,6 +89,19 @@ public class GameManager : MonoBehaviour
 
         UpdateTimeUI();
         UpdatePowerUI();
+        midnightCallPlayed = false;
+
+        if (leftDoor != null)
+        {
+            if (leftDoor.isClosed)
+                leftDoor.ToggleDoor();
+        }
+
+        if (rightDoor != null)
+        {
+            if (rightDoor.isClosed)
+                rightDoor.ToggleDoor();
+        }
     }
 
     void HandleTime()
@@ -92,6 +126,15 @@ public class GameManager : MonoBehaviour
                 BompaManager bompa = FindObjectOfType<BompaManager>();
                 if (bompa != null)
                     bompa.OnMidnight();
+
+                if (!midnightCallPlayed && phoneSource != null && midnightCall != null)
+                {
+                    phoneSource.clip = midnightCall;
+                    phoneSource.Play();
+
+                    StartCoroutine(WaitForMidnightCall());
+                    midnightCallPlayed = true;
+                }
             }
 
             // Win condition: 6 AM ONLY
@@ -100,6 +143,17 @@ public class GameManager : MonoBehaviour
                 WinGame();
             }
         }
+    }
+
+    IEnumerator WaitForMidnightCall()
+    {
+        midnightCallFinished = false;
+
+        yield return new WaitForSeconds(midnightCall.length);
+
+        midnightCallFinished = true;
+
+        Debug.Log("Midnight call finished — Bompa can move");
     }
 
     void UpdateTimeUI()
@@ -141,6 +195,22 @@ public class GameManager : MonoBehaviour
         powerText.text = "Power: " + Mathf.RoundToInt(currentPower) + "%";
     }
 
+    IEnumerator FadeOutAmbient()
+    {
+        if (ambientSource == null) yield break;
+
+        float startVolume = ambientSource.volume;
+
+        while (ambientSource.volume > 0)
+        {
+            ambientSource.volume -= startVolume * Time.deltaTime;
+            yield return null;
+        }
+
+        ambientSource.Stop();
+        ambientSource.volume = startVolume; // reset for next game
+    }
+
     IEnumerator PowerOutSequence()
     {
         powerOut = true;
@@ -152,6 +222,9 @@ public class GameManager : MonoBehaviour
 
         if (cameraMonitor != null)
             cameraMonitor.ToggleMonitor(false);
+
+        if (ambientSource != null)
+            StartCoroutine(FadeOutAmbient());
 
         if (leftDoor != null)
         {
@@ -197,16 +270,32 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    public void TriggerGameOver()
+    {
+        if (ambientSource != null)
+            ambientSource.Stop();
+
+        MenuManager menu = FindObjectOfType<MenuManager>();
+        if (menu != null)
+            menu.ShowGameOver();
+    }
+
     void WinGame()
     {
         gameActive = false;
 
         Debug.Log("6 AM — YOU WIN");
 
+        if (ambientSource != null)
+            ambientSource.Stop();
+
         MenuManager menu = FindObjectOfType<MenuManager>();
         if (menu != null)
         {
-            menu.ShowWinScreen(); // we’ll build this next
+            menu.ShowWinScreen();
         }
+
+        if (winSource != null)
+            winSource.Play();
     }
 }

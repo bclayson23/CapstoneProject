@@ -14606,6 +14606,7 @@ MonoBehaviour:
   monitorUI: {fileID: 732990888}
   cam00: {fileID: 1247996749}
   cam01: {fileID: 907129054}
+  bompaEscaped: 0
   cameraNameText: {fileID: 96971184}
   blackoutScreen: {fileID: 992144330}
 --- !u!1 &1264732223

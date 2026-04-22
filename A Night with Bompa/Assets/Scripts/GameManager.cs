@@ -102,6 +102,11 @@ public class GameManager : MonoBehaviour
             if (rightDoor.isClosed)
                 rightDoor.ToggleDoor();
         }
+
+        if (cameraMonitor != null)
+        {
+            cameraMonitor.ResetMonitor();
+        }
     }
 
     void HandleTime()

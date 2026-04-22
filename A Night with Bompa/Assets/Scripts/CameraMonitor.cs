@@ -15,7 +15,7 @@ public class CameraMonitor : MonoBehaviour
     public Camera cam00;
     public Camera cam01;
 
-    private bool bompaEscaped = false;
+    public bool bompaEscaped = false;
 
     public TextMeshProUGUI cameraNameText;
 
@@ -30,6 +30,30 @@ public class CameraMonitor : MonoBehaviour
         {
             ActivateCamera(0);
         }
+    }
+
+    public void ResetMonitor()
+    {
+        currentCamera = 0;
+        bompaEscaped = false;
+        isViewingCameras = false;
+
+        DisableAllCameras();
+
+        if (playerCamera != null)
+            playerCamera.enabled = true;
+
+        if (monitorUI != null)
+            monitorUI.SetActive(false);
+
+        if (cameraNameText != null)
+        {
+            cameraNameText.gameObject.SetActive(false);
+            cameraNameText.text = "CAM 01 - Cell";
+        }
+
+        if (blackoutScreen != null)
+            blackoutScreen.SetActive(false);
     }
 
     void Start()

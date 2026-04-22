@@ -25,7 +25,6 @@ public class CameraMonitor : MonoBehaviour
     {
         bompaEscaped = state;
 
-        // If currently viewing camera 1, refresh it immediately
         if (currentCamera == 0 && isViewingCameras)
         {
             ActivateCamera(0);
@@ -67,14 +66,13 @@ public class CameraMonitor : MonoBehaviour
             cameraNameText.gameObject.SetActive(false);
 
         if (playerCamera != null)
-            playerCamera.enabled = true; // make sure office camera is active
+            playerCamera.enabled = true;
     }
 
     void Update()
     {
         if (!isViewingCameras) return;
 
-        // Keys 1–9 to switch cameras
         for (int i = 0; i < cameras.Length; i++)
         {
             if (Input.GetKeyDown(KeyCode.Alpha1 + i))
@@ -88,11 +86,9 @@ public class CameraMonitor : MonoBehaviour
     {
         isViewingCameras = state;
 
-        // Turn the player camera OFF when cameras are open
         if (playerCamera != null)
             playerCamera.enabled = !state;
 
-        // Turn monitor UI on/off
         monitorUI.SetActive(state);
 
         cameraNameText.gameObject.SetActive(state);
@@ -107,11 +103,9 @@ public class CameraMonitor : MonoBehaviour
     {
         currentCamera = index;
 
-        // Turn off all cameras
         foreach (Camera cam in cameras)
             cam.enabled = false;
 
-        // Update text FIRST
         string[] cameraNames =
         {
         "CAM 01 - Cell",
@@ -127,7 +121,6 @@ public class CameraMonitor : MonoBehaviour
 
         cameraNameText.text = cameraNames[index];
 
-        // Special case for Cam 1
         if (index == 0)
         {
             if (!bompaEscaped)

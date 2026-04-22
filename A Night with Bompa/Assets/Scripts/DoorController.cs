@@ -7,7 +7,6 @@ public class DoorController : MonoBehaviour
     public bool isClosed = false;
     public bool lightOn = false;
 
-    [Header("Audio")]
     public AudioSource doorAudioSource;
 
     public AudioClip openSound;

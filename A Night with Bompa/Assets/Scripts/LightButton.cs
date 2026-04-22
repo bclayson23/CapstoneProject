@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class LightButton : MonoBehaviour
 {
-    public Light controlledLight; // Assign in Inspector
+    public Light controlledLight;
     public DoorController door;
     private bool isOn = false;
 

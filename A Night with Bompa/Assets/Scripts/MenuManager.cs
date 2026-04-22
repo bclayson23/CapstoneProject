@@ -78,10 +78,8 @@ public class MenuManager : MonoBehaviour
 
     public void BackToMenu()
     {
-        // Show menu
         mainMenuUI.SetActive(true);
 
-        // Hide other UI
         if (gameUI != null)
             gameUI.SetActive(false);
 
@@ -91,27 +89,20 @@ public class MenuManager : MonoBehaviour
         if (winUI != null)
             winUI.SetActive(false);
 
-        // Pause game
         Time.timeScale = 0f;
 
-        // Reset GameManager
         GameManager gm = FindObjectOfType<GameManager>();
         if (gm != null)
             gm.ResetGame();
 
-        // Reset Bompa
         BompaManager bompa = FindObjectOfType<BompaManager>();
         if (bompa != null)
             bompa.ResetBompa();
 
-        // Disable player again (since menu is open)
         if (player != null)
             player.enabled = false;
 
-        // Unlock cursor
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
-
-        Debug.Log("Returned to menu and reset game");
     }
 }

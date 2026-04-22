@@ -3,18 +3,15 @@ using UnityEngine;
 
 public class BompaManager : MonoBehaviour
 {
-    [Header("All Bompa Positions")]
     public GameObject bompaInCell;
     public GameObject hallBompa;
 
-    [Header("Door References")]
     public DoorController leftDoorScript;
     public DoorController rightDoorScript;
 
-    [Header("Attack")]
     public GameObject officeBompa;
 
-    public GameObject[] roamingBompas; // kitchen, dining, etc
+    public GameObject[] roamingBompas;
 
     public GameObject currentBompa;
 
@@ -39,7 +36,6 @@ public class BompaManager : MonoBehaviour
     float cameraUpTimer = 0f;
     public float maxCameraUpTimeAtDoor = 15f;
 
-    [Header("Audio")]
     public AudioSource echoSource;
     public AudioSource cleanSource;
 
@@ -47,7 +43,6 @@ public class BompaManager : MonoBehaviour
     public AudioClip[] doorLeaveSounds;
     public AudioClip jumpscareSound;
 
-    private bool justEnteredCellHall = false;
     private bool waitingForMidnightCall = false;
 
     private bool playerHasBlocked = false;
@@ -55,8 +50,6 @@ public class BompaManager : MonoBehaviour
 
     public void ForceToLeftDoor()
     {
-        Debug.Log("ForceToLeftDoor called");
-
         CancelInvoke(nameof(TryMove));
 
         SetActiveBompa(leftDoor);
@@ -65,7 +58,6 @@ public class BompaManager : MonoBehaviour
 
         EnterDoorState(true);
 
-        Debug.Log("Bompa forced to door (normal state)");
     }
 
     public void ResetBompa()
@@ -102,8 +94,6 @@ public class BompaManager : MonoBehaviour
 
         CancelInvoke(nameof(TryMove));
         InvokeRepeating(nameof(TryMove), moveInterval, moveInterval);
-
-        Debug.Log("Bompa fully reset");
     }
 
     public enum BompaState
@@ -128,7 +118,6 @@ public class BompaManager : MonoBehaviour
         if (!door.isClosed)
         {
             readyToAttack = true;
-            Debug.Log("Bompa is now ready to attack");
         }
     }
 
@@ -140,7 +129,6 @@ public class BompaManager : MonoBehaviour
 
         if (door.isClosed)
         {
-            Debug.Log("Player blocked Bompa — leaving");
 
             ReturnToHall();
             return;
@@ -148,7 +136,6 @@ public class BompaManager : MonoBehaviour
 
         if (readyToAttack)
         {
-            Debug.Log("Player failed — ATTACK");
 
             TriggerAttack();
         }
@@ -173,7 +160,6 @@ public class BompaManager : MonoBehaviour
                 if (cameraUpTimer >= maxCameraUpTimeAtDoor)
                 {
                     readyToAttack = true;
-                    Debug.Log("Camera camping detected — Bompa ready to attack");
                 }
             }
             else
@@ -205,7 +191,6 @@ public class BompaManager : MonoBehaviour
         currentBompa = newBompa;
         currentBompa.SetActive(true);
 
-        // Trigger blackout
         CameraMonitor camMonitor = FindObjectOfType<CameraMonitor>();
         if (camMonitor != null)
             StartCoroutine(camMonitor.CameraBlackout());
@@ -261,7 +246,6 @@ public class BompaManager : MonoBehaviour
 
             case BompaState.LeftDoor:
             case BompaState.RightDoor:
-                // stays here until attack logic
                 break;
         }
     }
@@ -270,20 +254,17 @@ public class BompaManager : MonoBehaviour
     {
         float decision = Random.value;
 
-        // 50% stay roaming
         if (decision < 0.6f)
         {
             int index = Random.Range(0, roamingBompas.Length);
             SetActiveBompa(roamingBompas[index]);
             currentState = BompaState.Roaming;
         }
-        // 20% go left hall
         else if (decision < 0.80f)
         {
             SetActiveBompa(leftHall);
             currentState = BompaState.LeftHall;
         }
-        // 20% go right hall
         else
         {
             SetActiveBompa(rightHall);
@@ -314,13 +295,10 @@ public class BompaManager : MonoBehaviour
         if (doorRoutine != null)
             StopCoroutine(doorRoutine);
 
-        Debug.Log("Bompa returned to Cell Hall");
     }
 
     public void TriggerAttack()
     {
-        Debug.Log("Bompa attack!");
-
         if (currentBompa != null)
             currentBompa.SetActive(false);
 
@@ -353,8 +331,6 @@ public class BompaManager : MonoBehaviour
             StopCoroutine(doorRoutine);
 
         doorRoutine = StartCoroutine(DoorRoutine());
-
-        Debug.Log("Bompa is waiting at the door...");
     }
 
     void PlayRandomSound(AudioSource source, AudioClip[] clips)
@@ -383,8 +359,6 @@ public class BompaManager : MonoBehaviour
     {
         if (!hasEscaped)
         {
-            Debug.Log("Midnight reached — Bompa escaping");
-
             EscapeCell();
         }
     }
@@ -397,7 +371,6 @@ public class BompaManager : MonoBehaviour
 
         if (!playerHasBlocked)
         {
-            Debug.Log("Player failed to react — ATTACK");
             TriggerAttack();
             yield break;
         }
@@ -408,7 +381,6 @@ public class BompaManager : MonoBehaviour
 
         if (isAtDoor)
         {
-            Debug.Log("Leaving after being blocked");
             ReturnToHall();
         }
     }
@@ -421,7 +393,6 @@ public class BompaManager : MonoBehaviour
             (!isLeftDoor && door == rightDoorScript))
         {
             playerHasBlocked = true;
-            Debug.Log("Player blocked Bompa CORRECTLY");
         }
     }
 }

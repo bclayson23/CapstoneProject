@@ -4,7 +4,6 @@ using System.Collections;
 
 public class GameManager : MonoBehaviour
 {
-    [Header("Time")]
     public TextMeshProUGUI timeText;
     public int currentHour = 11;
     public float hourLength = 60f;
@@ -12,7 +11,6 @@ public class GameManager : MonoBehaviour
     private float timer = 0f;
     private bool gameActive = false;
 
-    [Header("Power")]
     public float maxPower = 100f;
     public float currentPower;
     public TextMeshProUGUI powerText;
@@ -33,7 +31,6 @@ public class GameManager : MonoBehaviour
 
     public AudioSource winSource;
 
-    [Header("Phone Calls")]
     public AudioSource phoneSource;
 
     public AudioClip startCall;
@@ -41,7 +38,6 @@ public class GameManager : MonoBehaviour
 
     private bool midnightCallPlayed = false;
 
-    [Header("Ambient")]
     public AudioSource ambientSource;
 
     public bool IsPowerOut()
@@ -49,7 +45,6 @@ public class GameManager : MonoBehaviour
         return powerOut;
     }
 
-    [Header("Power Out")]
     public Light officeLight;
 
     void Start()
@@ -119,13 +114,11 @@ public class GameManager : MonoBehaviour
 
             currentHour++;
 
-            // Wrap around after 12
             if (currentHour > 12)
                 currentHour = 1;
 
             UpdateTimeUI();
 
-            // Midnight trigger
             if (currentHour == 12)
             {
                 BompaManager bompa = FindObjectOfType<BompaManager>();
@@ -142,7 +135,6 @@ public class GameManager : MonoBehaviour
                 }
             }
 
-            // Win condition: 6 AM ONLY
             if (currentHour == 6)
             {
                 WinGame();
@@ -157,8 +149,6 @@ public class GameManager : MonoBehaviour
         yield return new WaitForSeconds(midnightCall.length);
 
         midnightCallFinished = true;
-
-        Debug.Log("Midnight call finished — Bompa can move");
     }
 
     void UpdateTimeUI()
@@ -172,15 +162,12 @@ public class GameManager : MonoBehaviour
     {
         float drain = baseDrain;
 
-        // Doors
         if (leftDoor.isClosed) drain += doorDrain;
         if (rightDoor.isClosed) drain += doorDrain;
 
-        // Cameras
         if (cameraMonitor != null && cameraMonitor.IsViewingCameras())
             drain += cameraDrain;
 
-        // Lights (STATE BASED now)
         if (leftDoor.lightOn) drain += lightDrain;
         if (rightDoor.lightOn) drain += lightDrain;
 
@@ -213,14 +200,12 @@ public class GameManager : MonoBehaviour
         }
 
         ambientSource.Stop();
-        ambientSource.volume = startVolume; // reset for next game
+        ambientSource.volume = startVolume;
     }
 
     IEnumerator PowerOutSequence()
     {
         powerOut = true;
-
-        Debug.Log("POWER OUT");
 
         if (officeLight != null)
             officeLight.enabled = false;
@@ -236,7 +221,7 @@ public class GameManager : MonoBehaviour
             if (leftDoor.isClosed)
                 leftDoor.ToggleDoor();
 
-            leftDoor.enabled = false; // disables interaction
+            leftDoor.enabled = false;
         }
 
         if (rightDoor != null)
@@ -258,11 +243,7 @@ public class GameManager : MonoBehaviour
 
         float wait = Random.Range(5f, 25f);
 
-        Debug.Log("PowerOut: waiting " + wait + " seconds");
-
         yield return new WaitForSecondsRealtime(wait);
-
-        Debug.Log("PowerOut: trying to attack");
 
         if (bompa == null)
         {
@@ -270,7 +251,6 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            Debug.Log("Calling TriggerAttack()");
             bompa.TriggerAttack();
         }
     }
@@ -288,8 +268,6 @@ public class GameManager : MonoBehaviour
     void WinGame()
     {
         gameActive = false;
-
-        Debug.Log("6 AM — YOU WIN");
 
         if (ambientSource != null)
             ambientSource.Stop();

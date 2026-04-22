@@ -97,9 +97,6 @@ public class PlayerController : MonoBehaviour
         if (isViewingCameras)
             currentPower -= powerDrainRate * 0.5f * Time.deltaTime;
 
-        if (Input.GetKey(KeyCode.Q) || Input.GetKey(KeyCode.E))
-            currentPower -= powerDrainRate * 0.2f * Time.deltaTime;
-
         currentPower = Mathf.Clamp(currentPower, 0, maxPower);
 
         if (currentPower <= 0 && isGameActive)

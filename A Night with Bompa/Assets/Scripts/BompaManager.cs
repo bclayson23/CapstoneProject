@@ -50,6 +50,9 @@ public class BompaManager : MonoBehaviour
     private bool justEnteredCellHall = false;
     private bool waitingForMidnightCall = false;
 
+    private bool playerHasBlocked = false;
+    private Coroutine doorRoutine;
+
     public void ForceToLeftDoor()
     {
         Debug.Log("ForceToLeftDoor called");
@@ -70,6 +73,14 @@ public class BompaManager : MonoBehaviour
         hasEscaped = false;
         isAtDoor = false;
         readyToAttack = false;
+        playerHasBlocked = false;
+        waitingForMidnightCall = false;
+
+        if (doorRoutine != null)
+        {
+            StopCoroutine(doorRoutine);
+            doorRoutine = null;
+        }
 
         if (currentBompa != null)
             currentBompa.SetActive(false);
@@ -300,7 +311,8 @@ public class BompaManager : MonoBehaviour
         CancelInvoke(nameof(TryMove));
         InvokeRepeating(nameof(TryMove), moveInterval, moveInterval);
 
-        StopCoroutine(nameof(DoorWaitRoutine));
+        if (doorRoutine != null)
+            StopCoroutine(doorRoutine);
 
         Debug.Log("Bompa returned to Cell Hall");
     }
@@ -335,7 +347,12 @@ public class BompaManager : MonoBehaviour
 
         CancelInvoke(nameof(TryMove));
 
-        StartCoroutine(DoorWaitRoutine());
+        playerHasBlocked = false;
+
+        if (doorRoutine != null)
+            StopCoroutine(doorRoutine);
+
+        doorRoutine = StartCoroutine(DoorRoutine());
 
         Debug.Log("Bompa is waiting at the door...");
     }
@@ -372,16 +389,39 @@ public class BompaManager : MonoBehaviour
         }
     }
 
-    IEnumerator DoorWaitRoutine()
+    IEnumerator DoorRoutine()
     {
+        float reactionTime = 15f;
+
+        yield return new WaitForSeconds(reactionTime);
+
+        if (!playerHasBlocked)
+        {
+            Debug.Log("Player failed to react — ATTACK");
+            TriggerAttack();
+            yield break;
+        }
+
         float wait = Random.Range(minDoorWait, maxDoorWait);
 
         yield return new WaitForSeconds(wait);
 
-        if (isAtDoor && !readyToAttack)
+        if (isAtDoor)
         {
-            Debug.Log("Door timer expired — leaving");
+            Debug.Log("Leaving after being blocked");
             ReturnToHall();
+        }
+    }
+
+    public void OnDoorClosed(DoorController door)
+    {
+        if (!isAtDoor) return;
+
+        if ((isLeftDoor && door == leftDoorScript) ||
+            (!isLeftDoor && door == rightDoorScript))
+        {
+            playerHasBlocked = true;
+            Debug.Log("Player blocked Bompa CORRECTLY");
         }
     }
 }

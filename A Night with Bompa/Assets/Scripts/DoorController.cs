@@ -39,6 +39,13 @@ public class DoorController : MonoBehaviour
                 doorAudioSource.PlayOneShot(openSound);
             }
         }
+
+        BompaManager bompa = FindObjectOfType<BompaManager>();
+
+        if (isClosed && bompa != null)
+        {
+            bompa.OnDoorClosed(this);
+        }
     }
 
     bool IsAnimationPlaying()

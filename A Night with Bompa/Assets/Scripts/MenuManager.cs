@@ -44,6 +44,10 @@ public class MenuManager : MonoBehaviour
         GameManager gm = FindObjectOfType<GameManager>();
         if (gm != null)
             gm.StartGame();
+
+        BompaManager bompa = FindObjectOfType<BompaManager>();
+        if (bompa != null)
+            bompa.ResetBompa();
     }
 
     public void ShowGameOver()
